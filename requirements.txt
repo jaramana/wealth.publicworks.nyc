@@ -1,3 +1,3 @@
-pandas
-requests
-shapely
+pandas>=3.0
+requests>=2.34
+shapely>=2.1
