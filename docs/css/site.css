@@ -2413,3 +2413,188 @@ select {
   background: var(--income-color);
   border: 1px solid #365341;
 }
+
+.back-to-map {
+  display: none;
+}
+
+/* Phones have two views: the map, then an area card with its own full screen. */
+@media (max-width: 720px) {
+  .map-page .masthead-inner {
+    width: calc(100% - 24px);
+    padding-block: 6px;
+    gap: 8px;
+  }
+  .map-page .wordmark {
+    font-size: 1rem;
+    padding: 4px 8px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .map-page .nav a {
+    font-size: 0.75rem;
+    padding: 8px 7px;
+  }
+  .map-page #mobile-search-slot {
+    display: block;
+    padding: 10px 12px 12px;
+  }
+  #mobile-search-slot .layer-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 10px;
+  }
+  .map-page #mobile-search-slot .source-label {
+    font-size: 0.6rem;
+    margin: 0;
+    flex: none;
+  }
+  #mobile-search-slot .source-switch {
+    flex: 1;
+    gap: 7px;
+  }
+  #mobile-search-slot .source-switch button {
+    min-height: 40px;
+    padding: 5px 8px;
+    font-size: 0.75rem;
+    box-shadow: 1px 2px 0 var(--ink);
+  }
+  #mobile-search-slot .layer-control .fine,
+  .map-page .map-heading,
+  .map-page .map-help,
+  .map-page .atlas-foot,
+  .map-page .legend p,
+  .map-page #reading,
+  .map-page .reader-bottom {
+    display: none;
+  }
+  #mobile-search-slot .search-block {
+    margin: 0;
+  }
+  #mobile-search-slot input {
+    height: 44px;
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+  .map-page .map-actions.view-switch {
+    top: 12px;
+    right: 12px;
+    padding: 3px;
+  }
+  .map-actions.view-switch button {
+    font-size: 0.72rem;
+    min-height: 38px;
+    padding: 6px 10px;
+  }
+  .map-page .legend {
+    left: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: 210px;
+    max-width: calc(100% - 84px);
+    padding: 9px 10px;
+  }
+  .map-page .legend-title {
+    font-size: 0.65rem;
+    margin-bottom: 6px;
+  }
+  .map-page .legend-ramp {
+    height: 6px;
+  }
+  .map-page .legend-labels {
+    font-size: 0.6rem;
+  }
+  .map-page .maplibregl-ctrl-bottom-right {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .map-page .camera-controls {
+    margin: 0 12px 0 0;
+  }
+  .camera-controls .camera-group:not(.zoom-controls) {
+    display: none;
+  }
+  .map-page .reader {
+    display: none;
+  }
+  .map-page .reader.has-selection {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding-top: env(safe-area-inset-top);
+  }
+  .map-page .back-to-map {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    align-self: flex-start;
+    margin: 12px 16px 4px;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    background: var(--paper);
+  }
+  .map-page .reader.has-selection .reader-content {
+    display: block;
+    padding: 16px 20px max(24px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+  .map-page .reader.has-selection .selection-card {
+    margin: 0 auto;
+    max-width: 440px;
+    padding: 8px;
+  }
+  .selection-card .close-area {
+    display: none;
+  }
+  .selection-card .deed-band {
+    padding: 18px 12px;
+  }
+  .selection-card .deed-band .zip {
+    font-size: 2rem;
+  }
+  .selection-card .deed-band h3 {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .selection-card .deed-body {
+    padding: 8px 6px;
+  }
+  .selection-card .household-count {
+    margin: 12px 0 18px;
+    font-size: 0.75rem;
+  }
+  .selection-card .income-caption {
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
+  .selection-card .income-comparison {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .selection-card .income-comparison dd {
+    font-size: 1.25rem;
+  }
+  .selection-card .investment-stats > div {
+    padding-block: 12px;
+    gap: 16px;
+    font-size: 0.8rem;
+  }
+  .selection-card .area-notes {
+    margin-top: 18px;
+    font-size: 0.75rem;
+  }
+  .selection-card .area-notes summary {
+    padding-block: 10px;
+  }
+}

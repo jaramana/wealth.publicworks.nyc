@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
     <title>Wealth NYC · The city, by two accounts</title>
     <meta
       name="description"
@@ -11,7 +14,7 @@
     <meta name="theme-color" content="#113d30" />
     <link rel="icon" href="favicon.svg" />
     <link rel="stylesheet" href="vendor/maplibre-gl.css" />
-    <link rel="stylesheet" href="css/site.css" />
+    <link rel="stylesheet" href="css/site.css?v=20260930-mobile" />
   </head>
   <body class="map-page">
     <a class="skip" href="#controls">Skip to map controls</a
@@ -23,12 +26,8 @@
         <div id="mobile-search-slot"></div>
         <div class="workspace">
           <aside class="reader" aria-label="Map details">
-            <button
-              id="sheet-toggle"
-              aria-expanded="false"
-              aria-controls="reader-content"
-            >
-              Read the map <span aria-hidden="true">＋</span>
+            <button id="back-to-map" class="back-to-map" type="button">
+              <span aria-hidden="true">←</span> Back to map
             </button>
             <div id="reader-content" class="reader-content">
               <div class="layer-control" id="controls">
@@ -128,6 +127,6 @@
     </main>
 
     <script src="vendor/maplibre-gl.js"></script>
-    <script type="module" src="js/map.js"></script>
+    <script type="module" src="js/map.js?v=20260930-mobile"></script>
   </body>
 </html>

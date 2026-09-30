@@ -25,7 +25,9 @@ fs.mkdirSync(output, { recursive: true });
     });
     const settled = async () => {
       await page.waitForFunction(async () => {
-        const { map } = await import("/js/map.js");
+        const { map } = await import(
+          document.querySelector('script[type="module"][src]').src
+        );
         return map?.loaded() && !map.isMoving();
       });
     };
@@ -66,7 +68,9 @@ fs.mkdirSync(output, { recursive: true });
     await page.click("#stacked");
     await settled();
     const heights = await page.evaluate(async () => {
-      const { map } = await import("/js/map.js");
+      const { map } = await import(
+        document.querySelector('script[type="module"][src]').src
+      );
       const before = map.getPaintProperty("areas", "fill-extrusion-height");
       map.jumpTo({ zoom: 12 });
       return [before, map.getPaintProperty("areas", "fill-extrusion-height")];
@@ -78,7 +82,9 @@ fs.mkdirSync(output, { recursive: true });
       0,
     );
     const taxScale = await page.evaluate(async () => {
-      const { map } = await import("/js/map.js");
+      const { map } = await import(
+        document.querySelector('script[type="module"][src]').src
+      );
       return {
         height: map.getPaintProperty("areas", "fill-extrusion-height"),
         color: map.getPaintProperty("areas", "fill-extrusion-color"),
@@ -87,7 +93,9 @@ fs.mkdirSync(output, { recursive: true });
       };
     });
     const outlines = await page.evaluate(async () => {
-      const { map } = await import("/js/map.js");
+      const { map } = await import(
+        document.querySelector('script[type="module"][src]').src
+      );
       return {
         roof: map.getLayer("roof-edges")?.type,
         ground: !!map.getLayer("edges"),
@@ -105,7 +113,9 @@ fs.mkdirSync(output, { recursive: true });
     await settled();
     assert.equal(
       await page.evaluate(async () =>
-        (await import("/js/map.js")).map.getBearing(),
+        (
+          await import(document.querySelector('script[type="module"][src]').src)
+        ).map.getBearing(),
       ),
       45,
     );
@@ -113,7 +123,9 @@ fs.mkdirSync(output, { recursive: true });
     await settled();
     assert.equal(
       await page.evaluate(async () =>
-        (await import("/js/map.js")).map.getBearing(),
+        (
+          await import(document.querySelector('script[type="module"][src]').src)
+        ).map.getBearing(),
       ),
       0,
     );
@@ -133,7 +145,9 @@ fs.mkdirSync(output, { recursive: true });
     assert(await page.$eval(".area-notes", (element) => element.open));
     await page.click(".area-notes summary");
     const censusScale = await page.evaluate(async () => {
-      const { map } = await import("/js/map.js");
+      const { map } = await import(
+        document.querySelector('script[type="module"][src]').src
+      );
       return {
         height: map.getPaintProperty("areas", "fill-extrusion-height"),
         color: map.getPaintProperty("areas", "fill-extrusion-color"),
@@ -161,18 +175,24 @@ fs.mkdirSync(output, { recursive: true });
     await settled();
     assert.equal(
       await page.evaluate(async () =>
-        (await import("/js/map.js")).map.getBearing(),
+        (
+          await import(document.querySelector('script[type="module"][src]').src)
+        ).map.getBearing(),
       ),
       0,
     );
     const initialZoom = await page.evaluate(async () =>
-      (await import("/js/map.js")).map.getZoom(),
+      (
+        await import(document.querySelector('script[type="module"][src]').src)
+      ).map.getZoom(),
     );
     await page.click('[data-camera="in"]');
     await settled();
     assert.equal(
       await page.evaluate(async () =>
-        (await import("/js/map.js")).map.getZoom(),
+        (
+          await import(document.querySelector('script[type="module"][src]').src)
+        ).map.getZoom(),
       ),
       initialZoom + 1,
     );
@@ -180,7 +200,9 @@ fs.mkdirSync(output, { recursive: true });
     await settled();
     assert.equal(
       await page.evaluate(async () =>
-        (await import("/js/map.js")).map.getZoom(),
+        (
+          await import(document.querySelector('script[type="module"][src]').src)
+        ).map.getZoom(),
       ),
       initialZoom,
     );
@@ -235,10 +257,10 @@ fs.mkdirSync(output, { recursive: true });
         ),
         200,
       );
-    for (const width of [320, 390, 768]) {
+    for (const width of [320, 375, 390, 768]) {
       await page.setViewport({
         width,
-        height: 844,
+        height: width === 375 ? 812 : 844,
         isMobile: width < 720,
         hasTouch: width < 720,
       });
@@ -266,14 +288,28 @@ fs.mkdirSync(output, { recursive: true });
           ),
         );
       }
-      if (width === 390) {
+      if (width < 720) {
         await page.screenshot({ path: output + "/mobile.png", fullPage: true });
+        await page.click('[data-layer="census"]');
+        assert.equal(
+          await page.$eval(
+            '[data-camera="right"]',
+            (e) => getComputedStyle(e.parentElement).display,
+          ),
+          "none",
+        );
+        assert.equal(
+          await page.$eval(".atlas-foot", (e) => getComputedStyle(e).display),
+          "none",
+        );
+        assert.equal(
+          await page.$eval("#reading", (e) => getComputedStyle(e).display),
+          "none",
+        );
         await page.type("#search", "11220");
         await page.keyboard.press("Enter");
         assert.equal(
-          await page.$eval("#sheet-toggle", (e) =>
-            e.getAttribute("aria-expanded"),
-          ),
+          await page.$eval(".reader", (e) => e.getAttribute("aria-modal")),
           "true",
         );
         assert(
@@ -281,23 +317,46 @@ fs.mkdirSync(output, { recursive: true });
             () => document.documentElement.scrollHeight <= innerHeight,
           ),
         );
-        await page.click('[data-layer="census"]');
-        assert.equal(
-          await page.$eval("#reading", (e) => getComputedStyle(e).display),
-          "none",
+        assert(
+          await page.evaluate(() => {
+            const panel = document
+              .querySelector(".reader")
+              .getBoundingClientRect();
+            return (
+              panel.top === 0 &&
+              panel.bottom === innerHeight &&
+              panel.width === innerWidth
+            );
+          }),
+          "Mobile card must fill the screen",
         );
-        await page.click("#sheet-toggle");
         assert.equal(
-          await page.$eval("#sheet-toggle", (e) =>
-            e.getAttribute("aria-expanded"),
-          ),
-          "false",
+          await page.$eval("#mobile-search-slot", (e) => e.inert),
+          true,
         );
-        await page.click("#sheet-toggle");
+        assert.equal(
+          await page.$eval("#back-to-map", (e) => e === document.activeElement),
+          true,
+        );
         await page.screenshot({
-          path: output + "/mobile-selected.png",
+          path: output + `/mobile-selected-${width}.png`,
           fullPage: true,
         });
+        await page.click("#back-to-map");
+        assert.equal(
+          await page.$eval(".reader", (e) => getComputedStyle(e).display),
+          "none",
+        );
+        assert.equal(
+          await page.$eval("#mobile-search-slot", (e) => e.inert),
+          false,
+        );
+        assert(!new URL(await page.url()).hash.includes("zip="));
+        assert.equal(
+          await page.$eval("#search", (e) => e === document.activeElement),
+          false,
+          "Returning to map must not open the phone keyboard",
+        );
       }
       await page.goto(base + "/data.html", { waitUntil: "networkidle0" });
       assert.equal(
@@ -342,7 +401,7 @@ fs.mkdirSync(output, { recursive: true });
       /11220/,
     );
     console.log(
-      "PASS: map render; search; single selection; source buttons; stable two-source card; zoom; rotation and north reset; compact selected card; fixed heights; shared URL; table; downloads; 320/390/768px overflow; reduced motion; no-library fallback; no browser errors.",
+      "PASS: map render; search; single selection; source buttons; stable two-source card; zoom; desktop rotation and north reset; full-screen mobile card and return; fixed heights; shared URL; table; downloads; 320/375/390/768px overflow; reduced motion; no-library fallback; no browser errors.",
     );
   } finally {
     await browser.close();

@@ -142,14 +142,46 @@ function renderSelection() {
       ? selectionCard(state.zip)
       : '<p class="fine">Select an area to see its figures.</p>';
     renderedZip = state.zip;
-    document.querySelector("[data-remove]")?.addEventListener("click", () => {
-      state.zip = null;
-      renderSelection();
-      applyPaint();
-      updateURL();
-    });
+    document
+      .querySelector("[data-remove]")
+      ?.addEventListener("click", clearSelection);
   }
-  setSheet(document.querySelector(".reader").classList.contains("open"));
+  syncMobileDetails();
+}
+
+function clearSelection() {
+  state.zip = null;
+  renderSelection();
+  applyPaint();
+  updateURL();
+  if (innerWidth <= 720) {
+    const target =
+      map?.getCanvas() || document.querySelector('[data-layer="tax"]');
+    target.focus({ preventScroll: true });
+  }
+}
+
+function syncMobileDetails() {
+  const mobile = innerWidth <= 720;
+  const active = mobile && Boolean(state.zip);
+  const reader = document.querySelector(".reader");
+  reader.classList.toggle("open", active);
+  reader.setAttribute("role", active ? "dialog" : "complementary");
+  if (active) reader.setAttribute("aria-modal", "true");
+  else reader.removeAttribute("aria-modal");
+  for (const selector of [
+    ".masthead",
+    "#mobile-search-slot",
+    ".map-stage",
+    ".atlas-foot",
+  ]) {
+    document.querySelector(selector).inert = active;
+  }
+  if (active && !reader.contains(document.activeElement)) {
+    document.activeElement?.blur();
+    $("reader-content").scrollTop = 0;
+    $("back-to-map").focus({ preventScroll: true });
+  }
 }
 
 function select(zip, fly = true) {
@@ -160,26 +192,6 @@ function select(zip, fly = true) {
   updateURL();
   if (fly && ready) focusArea(zip);
   if (innerWidth > 720) $("reader-content").scrollTop = 0;
-  if (innerWidth <= 720) {
-    setSheet(true);
-    requestAnimationFrame(() => {
-      const panel = $("reader-content");
-      panel.scrollTo({
-        top:
-          $("selection").getBoundingClientRect().top -
-          panel.getBoundingClientRect().top +
-          panel.scrollTop -
-          12,
-        behavior: reducedMotion() ? "instant" : "smooth",
-      });
-    });
-  }
-}
-function setSheet(open) {
-  document.querySelector(".reader").classList.toggle("open", open);
-  $("sheet-toggle").setAttribute("aria-expanded", String(open));
-  $("sheet-toggle").innerHTML =
-    `${state.zip ? "ZIP " + esc(state.zip) : "Read the map"} <span aria-hidden="true">${open ? "−" : "＋"}</span>`;
 }
 function focusArea(zip) {
   const feature = data.features.find((f) => f.properties.zip === zip);
@@ -237,7 +249,7 @@ function search() {
           select(b.dataset.zip);
           $("search").value = "";
           $("results").innerHTML = "";
-          $("search").focus({ preventScroll: true });
+          if (innerWidth > 720) $("search").focus({ preventScroll: true });
         }),
     );
 }
@@ -315,8 +327,16 @@ function setupMap() {
     dragRotate: true,
     pitchWithRotate: false,
     touchPitch: false,
-    cooperativeGestures: innerWidth <= 720,
+    cooperativeGestures: false,
   });
+
+  const mobileRotation = matchMedia("(max-width:720px)");
+  const setTouchRotation = () => {
+    if (mobileRotation.matches) map.touchZoomRotate.disableRotation();
+    else map.touchZoomRotate.enableRotation();
+  };
+  setTouchRotation();
+  mobileRotation.addEventListener("change", setTouchRotation);
 
   map.addControl(new CameraControls(), "bottom-right");
   map.on("error", (event) => {
@@ -443,12 +463,41 @@ async function init() {
       if (mobileQuery.matches)
         $("mobile-search-slot").append($("controls"), searchBlock);
       else $("reader-content").prepend($("controls"), searchBlock);
+      syncMobileDetails();
     };
     placeSearch();
     mobileQuery.addEventListener("change", placeSearch);
-    $("sheet-toggle").onclick = () =>
-      setSheet(!document.querySelector(".reader").classList.contains("open"));
-    if (state.zip && mobileQuery.matches) setSheet(true);
+    $("back-to-map").onclick = clearSelection;
+    document.querySelector(".reader").addEventListener("keydown", (event) => {
+      if (!mobileQuery.matches || !state.zip) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        clearSelection();
+      }
+      if (event.key === "Tab") {
+        const controls = [
+          ...document
+            .querySelector(".reader")
+            .querySelectorAll("button, input, a, summary"),
+        ].filter(
+          (element) =>
+            element.getClientRects().length &&
+            !element.disabled &&
+            !element.closest("[inert]") &&
+            (!element.closest("details:not([open])") ||
+              element.tagName === "SUMMARY"),
+        );
+        const first = controls[0],
+          last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    });
     $("snapshot").textContent =
       `${period(meta)} · Annual averages · 2022 dollars`;
     $("search").addEventListener("input", search);
@@ -458,7 +507,10 @@ async function init() {
         e.preventDefault();
         $("results").querySelector("button")?.focus();
       }
-      if (e.key === "Enter") $("results").querySelector("button")?.click();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        $("results").querySelector("button")?.click();
+      }
     });
     $("results").addEventListener("keydown", (e) => {
       const buttons = [...$("results").querySelectorAll("button")],

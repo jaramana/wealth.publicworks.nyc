@@ -2,7 +2,7 @@
 
 Compare New York City income in tax records and Census data. Both map views show annual averages per Census household for 2018–2022, in 2022 dollars, on one shared dollar scale.
 
-A [publicworks.nyc](https://publicworks.nyc/) project, published at [wealth.publicworks.nyc](https://wealth.publicworks.nyc/). The map fills one viewport beneath the masthead. Desktop controls use a side panel; phones keep source selection and search above the map, with collapsible details. Data and About use the shared Public Works footer.
+A [publicworks.nyc](https://publicworks.nyc/) project, published at [wealth.publicworks.nyc](https://wealth.publicworks.nyc/). The map fills one viewport beneath the masthead. Desktop controls use a side panel. Phones use compact source selection and search above the map; selecting an area opens a full-screen card with a Back to map button. Mobile map notes, rotation controls, and the status strip are omitted; the Data page retains the methods and citations. Data and About use the shared Public Works footer.
 
 ## Data sources
 
