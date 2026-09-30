@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Wealth NYC · The city, by two accounts</title>
+    <meta
+      name="description"
+      content="Compare New York City income in IRS and Census Bureau data. Same household denominator, years, and dollar scale."
+    />
+    <meta name="theme-color" content="#113d30" />
+    <link rel="icon" href="favicon.svg" />
+    <link rel="stylesheet" href="vendor/maplibre-gl.css" />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body class="map-page">
+    <a class="skip" href="#controls">Skip to map controls</a
+    ><a class="skip" href="data.html#table">Use the data table</a>
+    <header class="masthead" data-chrome="masthead"></header>
+    <main id="main">
+      <h1 class="sr-only">Wealth NYC map</h1>
+      <section class="atlas wrap" aria-label="Explore the wealth map">
+        <div id="mobile-search-slot"></div>
+        <div class="workspace">
+          <aside class="reader" aria-label="Map details">
+            <button
+              id="sheet-toggle"
+              aria-expanded="false"
+              aria-controls="reader-content"
+            >
+              Read the map <span aria-hidden="true">＋</span>
+            </button>
+            <div id="reader-content" class="reader-content">
+              <div class="layer-control" id="controls">
+                <span id="source-label" class="source-label"
+                  >Map data from</span
+                >
+                <div
+                  class="source-switch"
+                  role="group"
+                  aria-labelledby="source-label"
+                >
+                  <button data-layer="tax" aria-pressed="true">IRS</button>
+                  <button data-layer="census" aria-pressed="false">
+                    Census Bureau
+                  </button>
+                </div>
+                <p class="fine">2018–2022 · 2022 dollars</p>
+              </div>
+              <div class="search-block">
+                <label for="search">Find a ZIP code or neighborhood</label
+                ><input
+                  id="search"
+                  type="search"
+                  autocomplete="off"
+                  placeholder="Try 11220 or Sunset Park"
+                  aria-controls="results"
+                />
+                <div
+                  id="results"
+                  class="search-results"
+                  role="group"
+                  aria-label="Search results"
+                ></div>
+              </div>
+              <div id="reading" aria-live="polite">
+                <p class="eyebrow">Reading the map</p>
+                <h2>IRS</h2>
+                <p>Loading the data…</p>
+              </div>
+              <div id="selection" aria-live="polite"></div>
+              <div class="reader-bottom">
+                <a href="data.html#table">Explore all ZIP areas in a table</a>
+                <p class="fine">
+                  ZIP areas combine some postal ZIP codes. Neighborhood names
+                  are approximate.
+                </p>
+              </div>
+            </div>
+          </aside>
+          <div class="map-stage">
+            <div
+              id="map"
+              role="region"
+              aria-label="New York City income map. Search or use the data table to select an area without a mouse."
+            ></div>
+            <div class="map-heading">
+              <span class="eyebrow">New York City</span
+              ><span id="map-period">IRS · 2018–2022</span>
+            </div>
+            <div
+              class="map-actions view-switch"
+              role="group"
+              aria-label="Map view"
+            >
+              <button id="stacked" aria-pressed="true">Stacked</button>
+              <button id="flat" aria-pressed="false">Flat</button>
+            </div>
+            <div id="map-message" class="map-message" role="status">
+              Drawing the city…
+            </div>
+            <div id="map-tip" class="map-tip" hidden></div>
+            <div class="legend" id="legend"></div>
+            <div class="map-help">
+              Select an area to inspect it ·
+              <span class="desktop-help">Drag to move · Scroll to zoom</span
+              ><span class="mobile-help">Use two fingers to move</span>
+            </div>
+          </div>
+        </div>
+        <div class="atlas-foot">
+          <span id="snapshot">Loading source dates…</span
+          ><span class="map-credits"
+            ><a href="data.html#method">Method</a
+            ><a href="https://data.cityofnewyork.us/d/pri4-ifjk"
+              >Boundaries: NYC Health</a
+            ></span
+          >
+        </div>
+      </section>
+      <noscript
+        ><p class="wrap">
+          The map needs JavaScript.
+          <a href="data/wealth-nyc-zip.csv">Download the complete CSV</a> or
+          read the <a href="data.html#method">method</a>.
+        </p></noscript
+      >
+    </main>
+
+    <script src="vendor/maplibre-gl.js"></script>
+    <script type="module" src="js/map.js"></script>
+  </body>
+</html>
