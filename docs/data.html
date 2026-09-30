@@ -121,9 +121,30 @@
             </div>
             <div class="method-body">
               <p>
-                Income reported on tax returns: wages, realized capital gains and
-                other income. We use adjusted gross income (AGI).
+                Income reported on tax returns: wages, realized capital gains,
+                and other income. We use adjusted gross income (AGI).
               </p>
+              <ol class="pipeline" aria-label="IRS calculation steps">
+                <li>
+                  <strong>Add income by area</strong
+                  ><span
+                    >Combine assigned postal ZIPs for each tax year,
+                    2018–2022.</span
+                  >
+                </li>
+                <li>
+                  <strong>Convert to 2022 dollars</strong
+                  ><span>Adjust each year’s total for inflation.</span>
+                </li>
+                <li>
+                  <strong>Find the annual average</strong
+                  ><span>Add the five adjusted totals, then divide by 5.</span>
+                </li>
+                <li>
+                  <strong>Divide by households</strong
+                  ><span>Use the area’s ACS household count.</span>
+                </li>
+              </ol>
               <div
                 class="equation"
                 role="math"
@@ -145,8 +166,31 @@
             <div class="method-body">
               <p>
                 The American Community Survey (ACS) counts wages, interest,
-                dividends and other money income. It excludes capital gains.
+                dividends, and other money income. It excludes capital gains.
               </p>
+              <ol class="pipeline" aria-label="Census Bureau calculation steps">
+                <li>
+                  <strong>Use the five-year estimate</strong
+                  ><span
+                    >ACS 2018–2022 estimates are already in 2022 dollars.</span
+                  >
+                </li>
+                <li>
+                  <strong>Add income by area</strong
+                  ><span
+                    >Combine aggregate household income from assigned Census ZIP
+                    areas (ZCTAs).</span
+                  >
+                </li>
+                <li>
+                  <strong>Add household counts</strong
+                  ><span>Combine counts from the same ZCTAs.</span>
+                </li>
+                <li>
+                  <strong>Divide income by households</strong
+                  ><span>This gives the mean, rather than the median.</span>
+                </li>
+              </ol>
               <div
                 class="equation"
                 role="math"
@@ -161,57 +205,15 @@
             </div>
           </article>
         </div>
+        <p class="method-note">
+          ACS estimates are already annual and in 2022 dollars. No extra
+          division by 5 or inflation adjustment.
+        </p>
         <p>
-          Same household count, different income definitions and coverage. We do
+          Same household count; different income definitions and coverage. We do
           not match individual tax returns to households or treat the gap as an
           exact amount of missing income.
         </p>
-        <ol class="process">
-          <li>
-            <h3>Collect</h3>
-            <p>
-              We download IRS tax records by ZIP for tax years 2018–2022 and
-              Census Bureau ACS five-year estimates for 2018–2022. We also read
-              Bureau of Labor Statistics inflation indexes and NYC Health’s ZIP
-              area boundaries.
-            </p>
-          </li>
-          <li>
-            <h3>Match</h3>
-            <p>
-              NYC Health’s 177 modified ZIP areas (MODZCTAs) list the ZIP and
-              Census ZIP Code Tabulation Area (ZCTA) codes they contain. Those
-              lists assign IRS postal ZIPs and Census ZCTAs to the map areas.
-            </p>
-          </li>
-          <li>
-            <h3>Adjust</h3>
-            <p>
-              IRS dollar fields are reported in thousands, so we multiply by
-              1,000. We then convert each year to 2022 dollars with the BLS
-              all-items CPI-U. ACS estimates are already in 2022 dollars, so we
-              do not adjust them again.
-            </p>
-          </li>
-          <li>
-            <h3>Calculate</h3>
-            <p>
-              For the IRS, we add the five adjusted yearly totals and divide by
-              5 to get income for one year. For the Census Bureau, we add
-              aggregate household income across the area’s ZCTAs. We then divide
-              each by the area’s ACS household count. ACS estimates are already
-              annual, so there is no extra division by 5.
-            </p>
-          </li>
-          <li>
-            <h3>Check</h3>
-            <p>
-              IRS figures are withheld for areas with fewer than 1,000 returns in
-              2022. Unavailable values are not zero. Checks run before export,
-              and if one fails, the published files stay as they are.
-            </p>
-          </li>
-        </ol>
       </section>
 
       <section id="notes">
@@ -349,10 +351,13 @@
         </details>
         
         <details>
-          <summary>How ZIP codes become map areas</summary>
+          <summary>How ZIP codes become 177 map areas</summary>
           <p>
-            Postal ZIPs, Census ZCTAs and MODZCTAs do not line up exactly. This
-            is an area-level join, not an address-level match.
+            We use NYC Health’s modified ZIP Code Tabulation Areas (MODZCTAs).
+            Each boundary lists ZIP and ZCTA codes; those lists assign IRS
+            postal ZIPs and Census ZCTAs to the map areas. Postal ZIPs, Census
+            ZCTAs, and MODZCTAs do not line up exactly. This is an area-level
+            join, not an address-level match.
           </p>
           <div class="geography-flow">
             <span>IRS postal ZIPs<br />+ Census ZCTAs</span
@@ -361,8 +366,9 @@
             ><span aria-hidden="true">→</span><strong>177 map areas</strong>
           </div>
           <p>
-            We exclude mostly Nassau ZCTAs 11001, 11003 and 11040, and the
-            catch-all code 99999.
+            We exclude mostly Nassau ZCTAs 11001, 11003, and 11040, and the
+            catch-all code 99999. IRS figures are withheld for areas with fewer
+            than 1,000 returns in 2022. Unavailable values are not zero.
           </p>
           <p>
             Neighborhood names come from the residential Neighborhood Tabulation
