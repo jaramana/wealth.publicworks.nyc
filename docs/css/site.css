@@ -2602,3 +2602,69 @@ select {
     padding-block: 10px;
   }
 }
+
+/* ---- Data page -------------------------------------------------------
+   Downloads, the columns disclosure and the process list. The same three
+   blocks appear on every Public Works Data page; see alignment.md. */
+.download h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.download p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.columns > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.data-note {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  margin-top: 12px;
+}
+.process {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  counter-reset: step;
+  max-width: 38rem;
+}
+.process > li {
+  position: relative;
+  counter-increment: step;
+  padding: 0 0 20px 42px;
+}
+.process > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.process > li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 30px;
+  bottom: 4px;
+  border-left: 2px solid var(--rule);
+}
+.process h3 {
+  margin: 0 0 3px;
+  font-size: 1rem;
+}
+.process p {
+  margin: 0;
+  color: var(--ink-soft);
+}
