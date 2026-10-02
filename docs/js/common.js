@@ -1,3 +1,5 @@
+import { site } from "./site-config.js?v=20261002";
+export { site };
 // Shared formats and definitions. Map and table use the same units and labels.
 export const $ = (id) => document.getElementById(id);
 const whole = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
@@ -33,10 +35,10 @@ export const reducedMotion = () =>
 export const layers = {
   tax: {
     field: "irs_income_per_household_2022",
-    title: "The city, by two accounts",
+    title: `The ${site.regionNoun}, by two accounts`,
     unit: "Annual income per household",
     description:
-      "Tax records make the city’s income peaks stand out. This view includes reported capital gains alongside wages and other income.",
+      `Tax records show ${site.regionName}’s income peaks. This view includes reported capital gains alongside wages and other income.`,
     limit:
       "Switch between sources to see how the geography changes. Same years, household counts, and dollar scale.",
     source: "IRS",
@@ -44,7 +46,7 @@ export const layers = {
   },
   census: {
     field: "acs_mean_household_income",
-    title: "The city, by two accounts",
+    title: `The ${site.regionNoun}, by two accounts`,
     unit: "Annual income per household",
     description:
       "The American Community Survey (ACS) gives another view of household income. It counts wages, interest, and dividends, but excludes capital gains.",
@@ -65,11 +67,11 @@ export function period(meta, source = "irs") {
   return `${years[0]}–${years.at(-1)}`;
 }
 const notice =
-  "This is not an official product. It is an independent initiative, not affiliated with, endorsed by, or produced by the IRS, the U.S. Census Bureau, or the City of New York. Please refer to them for authoritative information.";
+  `This is not an official product. It is an independent initiative, not affiliated with, endorsed by, or produced by the IRS, the U.S. Census Bureau, or the ${site.government}. Please refer to them for authoritative information.`;
 export function chrome() {
   const page = location.pathname.split("/").pop() || "index.html";
   document.querySelector('[data-chrome="masthead"]').innerHTML =
-    `<div class="wrap masthead-inner"><a class="wordmark" href="index.html">Wealth <span>NYC</span></a><nav class="nav" aria-label="Sections">${[
+    `<div class="wrap masthead-inner"><a class="wordmark" href="index.html">Wealth <span>${site.shortName}</span></a><nav class="nav" aria-label="Sections">${[
       ["index.html", "Map"],
       ["data.html", "Data"],
       ["about.html", "About"],
@@ -92,14 +94,20 @@ export function chrome() {
         ["about.html", "About"],
       ],
     )}</ul></div><div><h4>Project</h4><ul>${links([
-      ["https://github.com/jaramana/wealth.publicworks.nyc", "Source code"],
+      [site.repository, "Source code"],
       [
-        "https://github.com/jaramana/wealth.publicworks.nyc/issues",
+        `${site.repository}/issues`,
         "Report an issue",
       ],
-    ])}</ul></div></div><p class="colophon"><strong>This is not an official product.</strong> It is an independent initiative, not affiliated with, endorsed by, or produced by the <a href="https://www.irs.gov/">IRS</a>, the <a href="https://www.census.gov/">U.S. Census Bureau</a>, or the City of New York. Please refer to them for authoritative information.</p><p class="portfolio">A <a href="https://publicworks.nyc/">publicworks.nyc</a> project.</p></div>`;
+    ])}</ul></div></div><p class="colophon"><strong>This is not an official product.</strong> It is an independent initiative, not affiliated with, endorsed by, or produced by the <a href="https://www.irs.gov/">IRS</a>, the <a href="https://www.census.gov/">U.S. Census Bureau</a>, or the ${site.government}. Please refer to them for authoritative information.</p><p class="portfolio">A <a href="https://publicworks.nyc/">publicworks.nyc</a> project.</p></div>`;
   }
   document
     .querySelectorAll("[data-notice]")
     .forEach((el) => (el.textContent = notice));
 }
+
+export const areaSearchText = (p) =>
+  `${p.zip} ${p.zips_included} ${p.name} ${p[site.groupField]} ${p.municipalities || ""} ${p.counties || ""}`.toLowerCase();
+export const fullDate = (value) => new Intl.DateTimeFormat("en-GB", {
+  day: "numeric", month: "long", year: "numeric", timeZone: "UTC"
+}).format(new Date(value + "T00:00:00Z"));

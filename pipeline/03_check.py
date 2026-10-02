@@ -17,23 +17,24 @@ SHARES = [
 
 
 def run():
-    t = pd.read_csv(cfg.BUILD / "zips.csv", dtype={"zip": str})
+    t = pd.read_csv(cfg.BUILD / "zips.csv", dtype={"zip": str, "zips_included": str})
     problems = []
 
     def check(ok, message):
         if not ok:
             problems.append(message)
 
-    check(170 <= len(t) <= 185, f"expected about 177 areas, found {len(t)}")
+    check(cfg.EXPECTED_AREAS[0] <= len(t) <= cfg.EXPECTED_AREAS[1], f"unexpected area count, found {len(t)}")
     check(t.zip.is_unique, "ZIP areas repeat")
-    check(t.irs_published.sum() >= 170, f"only {t.irs_published.sum()} areas have IRS figures")
+    check(t.irs_published.sum() >= cfg.MIN_PUBLISHED, f"only {t.irs_published.sum()} areas have IRS figures")
     check(t.name.notna().all(), "an area has no neighborhood name")
-    check(t.acs_population.sum() > 8_000_000, "city population is under 8 million")
-    check(t.sales_count.sum() > 100_000, f"only {t.sales_count.sum()} sales")
-    check(t.acs_median_household_income.notna().sum() >= 170, "median income is missing for many areas")
+    check(t.acs_population.sum() > cfg.MIN_POPULATION, "mapped population below regional coverage threshold")
+    if "sales" in cfg.SOURCES:
+        check(t.sales_count.sum() > 100_000, f"only {t.sales_count.sum()} sales")
+    check(t.acs_median_household_income.notna().sum() >= cfg.MIN_PUBLISHED, "median income is missing for many areas")
     for field in ["irs_income_per_household_2022", "acs_mean_household_income"]:
-        check(t[field].gt(0).sum() >= 170, f"missing or nonpositive map values: {field}")
-    check((t.acs_households > 0).all(), "household denominator must be positive")
+        check(t[field].gt(0).sum() >= cfg.MIN_PUBLISHED, f"missing or nonpositive map values: {field}")
+    check((t.acs_households.dropna() >= 0).all(), "household denominator must be nonnegative; zero values are withheld")
     check((t.irs_investment_share_2022.dropna().between(0, 1)).all(), "real investment shares outside 0–1")
 
     for c in SHARES:
@@ -45,7 +46,14 @@ def run():
 
     included = {z for zs in t.zips_included for z in zs.split(", ")}
     check(not included & cfg.EXCLUDE_ZCTAS, "a Nassau ZCTA is in the crosswalk")
-    check({"11249", "11211"} <= included, "Williamsburg ZIPs are missing from the crosswalk")
+    if cfg.REGION == "nyc":
+        check({"11249", "11211"} <= included, "Williamsburg ZIPs are missing from the crosswalk")
+    else:
+        check({"08401", "07102", "08102", "08608", "07302"} <= included, "major NJ city ZIPs missing")
+        check(t.county.nunique() == 21, "not all 21 counties are represented")
+        check(t.nj_land_share.ge(0.5).all(), "area is mostly outside NJ")
+    check(t.loc[t.irs_published, "irs_years_available"].eq(len(cfg.IRS_YEARS)).all(), "published ZIP lacks an IRS year")
+    check(t.loc[t.acs_households.le(0), "acs_mean_household_income"].isna().all(), "zero-household Census income must be unavailable")
 
     top = t.irs_top_agi_per_return.dropna()
     check((top >= 200_000).all(), "a top-bracket average is under $200,000")

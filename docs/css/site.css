@@ -2625,3 +2625,19 @@ select {
   color: var(--ink-faint);
   margin-top: 12px;
 }
+
+/* Missing values remain distinct from the income scale in both views. */
+.legend-unavailable {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 0.65rem;
+}
+.legend-unavailable i {
+  display: inline-block;
+  width: 12px;
+  height: 8px;
+  background: #466059;
+  border: 1px solid #becfbd;
+}

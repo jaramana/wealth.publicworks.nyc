@@ -1,3 +1,4 @@
+import { site } from "./site-config.js?v=20261002";
 // MapLibre 4 custom 3D layer. Draw boundaries at the actual roof elevation;
 // shared depth testing hides edges behind nearer stacks instead of drawing through them.
 export function roofOutlines(data, getView) {
@@ -38,7 +39,7 @@ export function roofOutlines(data, getView) {
       this.cache = new Map();
       // Keep GPU coordinates close to zero. Subtracting large world coordinates
       // in a float shader loses precision as the camera zooms in.
-      this.origin = maplibregl.MercatorCoordinate.fromLngLat([-74, 40.7]);
+      this.origin = maplibregl.MercatorCoordinate.fromLngLat(site.roofOrigin);
       this.localMatrix = new Float32Array(16);
       this.opacity = 0.34;
       this.lastFrame = performance.now();

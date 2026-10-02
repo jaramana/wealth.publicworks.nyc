@@ -1,4 +1,4 @@
-import { roofOutlines } from "./roof-outlines.js?v=20260930-soft";
+import { roofOutlines } from "./roof-outlines.js?v=20261002";
 import {
   $,
   money,
@@ -11,7 +11,9 @@ import {
   loadJSON,
   period,
   chrome,
-} from "./common.js?v=20260930";
+  site,
+  areaSearchText,
+} from "./common.js?v=20261002";
 chrome();
 const params = new URLSearchParams(location.hash.slice(1));
 const state = {
@@ -117,11 +119,11 @@ function render() {
   $("stacked").setAttribute("aria-pressed", String(!state.flat));
   $("flat").setAttribute("aria-pressed", String(state.flat));
   $("reading").innerHTML =
-    `<p class="eyebrow">Two sources. One city.</p><h2>${layer.title}</h2><p>${layer.description}</p><div class="map-equation" role="math" aria-label="Annual ${state.layer === "tax" ? "IRS" : "ACS"} income divided by households equals annual income per household"><span>${state.layer === "tax" ? "Annual IRS income" : "Annual ACS income"}</span><span aria-hidden="true">÷</span><span>Households</span><span aria-hidden="true">=</span><strong>${layer.unit}</strong></div><p class="reading-limit">${layer.limit} <a href="data.html#process">See the calculation</a></p>`;
+    `<p class="eyebrow">Two sources. One ${site.regionNoun}.</p><h2>${layer.title}</h2><p>${layer.description}</p><div class="map-equation" role="math" aria-label="Annual ${state.layer === "tax" ? "IRS" : "ACS"} income divided by households equals annual income per household"><span>${state.layer === "tax" ? "Annual IRS income" : "Annual ACS income"}</span><span aria-hidden="true">÷</span><span>Households</span><span aria-hidden="true">=</span><strong>${layer.unit}</strong></div><p class="reading-limit">${layer.limit} <a href="data.html#process">See the calculation</a></p>`;
   $("map-period").textContent =
     `${layer.source} · ${period(meta, layer.source === "Census Bureau" ? "acs" : "irs")}`;
   $("legend").innerHTML =
-    `<strong class="legend-title">Annual income per household</strong><div class="legend-ramp"></div><div class="legend-labels"><span>$0</span><span>$100k</span><span>$300k</span><span>$1.2m</span></div><p>2022 dollars · Same scale in both views.${state.flat ? "" : " Height is proportional to income."}</p>`;
+    `<strong class="legend-title">Annual income per household</strong><div class="legend-ramp"></div><div class="legend-labels"><span>$0</span><span>$100k</span><span>$300k</span><span>$1.2m+</span></div><span class="legend-unavailable"><i aria-hidden="true"></i> Not available</span><p>2022 dollars · Same scale in both views.${state.flat ? "" : " Height is proportional to income."}</p>`;
   renderSelection();
   updateURL();
 }
@@ -130,7 +132,7 @@ function selectionCard(zip) {
   if (!p) return "";
   const income = (label, field) =>
     `<div style="--income-color:${incomeColor(p[field])}"><dt>${label}</dt><dd class="${p[field] == null ? "unavailable" : ""}">${money(p[field])}</dd></div>`;
-  return `<section class="selection-card"><button class="close-area" data-remove="zip" aria-label="Close ZIP area ${esc(zip)}" title="Close area">×</button><div class="deed-band"><span class="zip">${esc(zip)}</span><h3>${esc(p.name)}</h3></div><div class="deed-body"><p class="household-count">${esc(p.borough)} · ${count(p.acs_households)} households</p><p class="income-caption">Annual income per household <span>2022 dollars</span></p><dl class="income-comparison">${income("IRS", "irs_income_per_household_2022")}${income("Census Bureau", "acs_mean_household_income")}</dl><dl class="investment-stats"><div><dt>From investments <small>Share of IRS income</small></dt><dd>${percent(p.irs_investment_share_2022)}</dd></div><div><dt>Total annual investment income</dt><dd>${compact(p.irs_investment_annual_2022)}</dd></div><div><dt>Share of NYC investment income</dt><dd>${percent(p.irs_share_of_city_investment_2022)}</dd></div></dl><details class="area-notes"><summary>Area & calculation details</summary><p>Postal ZIPs ${esc(p.zips_included)}. Neighborhood names are approximate.</p><p>${period(meta)} annual averages. Income per household uses ${count(p.acs_households)} ACS households. Investment figures use IRS data; NYC share uses area totals.</p><a href="data.html#process">Full calculation</a></details></div></section>`;
+  return `<section class="selection-card"><button class="close-area" data-remove="zip" aria-label="Close ZIP area ${esc(zip)}" title="Close area">×</button><div class="deed-band"><span class="zip">${esc(zip)}</span><h3>${esc(p.name)}</h3></div><div class="deed-body"><p class="household-count">${esc(p[site.groupField])} · ${count(p.acs_households)} households</p><p class="income-caption">Annual income per household <span>2022 dollars</span></p><dl class="income-comparison">${income("IRS", "irs_income_per_household_2022")}${income("Census Bureau", "acs_mean_household_income")}</dl><dl class="investment-stats"><div><dt>From investments <small>Share of IRS income</small></dt><dd>${percent(p.irs_investment_share_2022)}</dd></div><div><dt>Total annual investment income</dt><dd>${compact(p.irs_investment_annual_2022)}</dd></div><div><dt>Share of ${site.shortName} investment income</dt><dd>${percent(p[site.shareField])}</dd></div></dl><details class="area-notes"><summary>Area & calculation details</summary><p>Postal ZIPs ${esc(p.zips_included)}. ${site.searchType === "municipality" ? "Municipality" : "Neighborhood"} names are approximate.${p.nj_land_share < 0.9999 ? " This ZCTA crosses the state border: Census covers the whole area, while IRS data cover NJ returns." : ""}</p><p>${period(meta)} annual averages. Income per household uses ${count(p.acs_households)} ACS households. Investment figures use IRS data; ${site.shortName} share uses area totals.</p><a href="data.html#process">Full calculation</a></details></div></section>`;
 }
 let renderedZip;
 function renderSelection() {
@@ -203,7 +205,7 @@ function focusArea(zip) {
   coords(feature.geometry.coordinates);
   map.easeTo({
     center: bounds.getCenter(),
-    zoom: 11.1,
+    zoom: site.focusZoom,
     pitch: state.flat ? 0 : 48,
     duration: reducedMotion() ? 0 : 650,
   });
@@ -212,10 +214,10 @@ function reset() {
   if (!ready) return;
   const width = $("map").clientWidth,
     height = $("map").clientHeight;
-  const scale = Math.min(width / 1074, height / 735);
+  const scale = Math.min(width / site.referenceWidth, height / site.referenceHeight);
   map.jumpTo({
-    center: [-74.0, innerWidth <= 720 ? 40.62 : 40.69],
-    zoom: 9.93 + Math.log2(scale),
+    center: innerWidth <= 720 ? site.mobileCenter : site.center,
+    zoom: site.zoom + Math.log2(scale),
     pitch: state.flat ? 0 : 48,
     bearing: map.getBearing(),
   });
@@ -228,19 +230,17 @@ function search() {
   }
   const found = [...rows.values()]
     .filter((p) =>
-      `${p.zip} ${p.zips_included} ${p.name} ${p.borough}`
-        .toLowerCase()
-        .includes(q),
+      areaSearchText(p).includes(q),
     )
     .slice(0, 12);
   $("results").innerHTML = found.length
     ? found
         .map(
           (p) =>
-            `<button data-zip="${esc(p.zip)}"><strong>${esc(p.zip)}</strong> · ${esc(p.name)}<br>${esc(p.borough)}</button>`,
+            `<button data-zip="${esc(p.zip)}"><strong>${esc(p.zip)}</strong> · ${esc(p.name)}<br>${esc(p[site.groupField])}</button>`,
         )
         .join("")
-    : "<p>No matching area. Try a ZIP code or borough.</p>";
+    : `<p>No matching area. Try a ZIP code or ${site.groupField}.</p>`;
   $("results")
     .querySelectorAll("button")
     .forEach(
@@ -318,8 +318,8 @@ function setupMap() {
         },
       ],
     },
-    center: [-73.97, 40.71],
-    zoom: 9.5,
+    center: site.center,
+    zoom: site.zoom,
     pitch: state.flat ? 0 : 48,
     bearing: 0,
     attributionControl: false,
@@ -389,13 +389,7 @@ function setupMap() {
       map.resize();
       if (!state.zip) reset();
     }).observe($("map"));
-    for (const [name, coordinates] of [
-      ["Manhattan", [-74.025, 40.805]],
-      ["Brooklyn", [-73.98, 40.62]],
-      ["Queens", [-73.78, 40.74]],
-      ["The Bronx", [-73.855, 40.9]],
-      ["Staten Island", [-74.145, 40.565]],
-    ]) {
+    for (const [name, coordinates] of site.labels) {
       const el = document.createElement("span");
       el.className = "borough-label";
       el.textContent = name;
@@ -450,10 +444,11 @@ function showMapError() {
 async function init() {
   try {
     [data, meta] = await Promise.all([
-      loadJSON("data/wealth-nyc-zip.geojson"),
+      loadJSON(`data/${site.dataStem}.geojson`),
       loadJSON("data/meta.json"),
     ]);
     rows = new Map(data.features.map((f) => [f.properties.zip, f.properties]));
+    $("search").placeholder = site.searchExample;
     state.zip = rows.has(savedZip) ? savedZip : null;
     render();
 

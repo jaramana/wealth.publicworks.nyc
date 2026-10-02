@@ -1,5 +1,5 @@
 {
-  "built": "2026-09-29",
+  "built": "2026-10-02",
   "years": {
     "irs": [
       2018,
@@ -314,9 +314,30 @@
       "unit": "count",
       "source": "sales",
       "note": ""
+    },
+    {
+      "column": "irs_years_available",
+      "label": "Tax years available",
+      "unit": "count",
+      "source": "irs",
+      "note": "Number of tax years matched. IRS measures require all five years and at least 1,000 latest-year returns."
+    },
+    {
+      "column": "acs_households_moe",
+      "label": "Households margin of error",
+      "unit": "count",
+      "source": "acs",
+      "note": "90% confidence margin. Combined-area margins use the square root of summed squared ZCTA margins; this approximation ignores covariance."
+    },
+    {
+      "column": "acs_aggregate_income_moe",
+      "label": "Aggregate household income margin of error",
+      "unit": "dollars",
+      "source": "acs",
+      "note": "90% confidence margin in 2022 dollars. Combined-area approximation ignores covariance. The map mean has uncertainty in both its numerator and denominator."
     }
   ],
-  "city": {
+  "region": {
     "areas": 177,
     "gains_low_year": 2019,
     "gains_low": 38209579000,
@@ -380,6 +401,23 @@
       "11040"
     ],
     "irs_published_areas": 177,
-    "note": "City shares refer to mapped areas with published figures, not all NYC residents or returns."
+    "note": "Regional shares refer to mapped areas with published figures, not all residents or returns.",
+    "acs_available_areas": 177,
+    "zero_household_areas": 0
+  },
+  "city": {
+    "areas": 177,
+    "gains_low_year": 2019,
+    "gains_low": 38209579000,
+    "gains_high_year": 2021,
+    "gains_high": 98437269000,
+    "top_bracket_highest_zip": "10013",
+    "top_areas": 15,
+    "top_capital_share": 0.5445,
+    "top_returns_share": 0.0537,
+    "bottom_areas": 88,
+    "bottom_half_capital_share": 0.0292,
+    "bottom_half_returns_share": 0.55,
+    "median_topcoded_areas": 2
   }
 }

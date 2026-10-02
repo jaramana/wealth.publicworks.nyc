@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="canonical" href="https://wealth.publicworks.nyc/data.html" />
+    <meta property="og:url" content="https://wealth.publicworks.nyc/data.html" />
+    <meta property="og:title" content="Data · Wealth NYC" />
+    <meta property="og:type" content="website" />
     <title>Data · Wealth NYC</title>
     <meta
       name="description"
       content="Download the files behind Wealth NYC and see how they are made."
     />
-    <link rel="stylesheet" href="css/site.css" />
+    <link rel="stylesheet" href="css/site.css?v=20261002" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -344,11 +348,11 @@
             <div class="legend-ramp"></div>
             <div class="legend-labels">
               <span>$0</span><span>$100k</span><span>$300k</span
-              ><span>$1.2m</span>
+              ><span>$1.2m+</span>
             </div>
           </div>
           <p class="fine">
-            These color stops are shared by both maps. Their dollar intervals
+            The brightest color covers $1.2 million and above; height continues to rise. These color stops are shared by both maps. Their dollar intervals
             are unequal. Flat view helps reveal areas behind tall stacks. A
             selected area turns gold.
           </p>
@@ -372,8 +376,9 @@
           <p>
             We exclude mostly Nassau ZCTAs 11001, 11003, and 11040, and the
             catch-all code 99999. IRS figures are withheld for areas with fewer
-            than 1,000 returns in 2022. Unavailable values are not zero.
+            than 1,000 returns in 2022 or without data for all five tax years. Unavailable values are not zero.
           </p>
+          <p>This publication threshold is our comparison rule, not an IRS confidentiality requirement. An area below it may be residential.</p>
           <p>
             Neighborhood names come from the residential Neighborhood Tabulation
             Area with the largest overlap. Names are approximate and may repeat.
@@ -389,7 +394,7 @@
           <summary>How we choose these areas</summary>
           <p>
             Rank areas by nominal investment income per tax return, then take
-            the smallest group whose total exceeds half of mapped investment
+            the leading group in that ranking whose total reaches at least half of mapped investment
             income. Both bars describe that same group, using pooled 2018–2022
             income and returns from areas with published IRS data. This
             supplementary chart uses original-year dollars; the map uses
@@ -402,7 +407,7 @@
       <section id="table">
         <h2>Browse</h2>
         <p>
-          Compare all 177 areas. Select a ZIP area to see it on the map. Both
+          Compare all <span id="area-count">177</span> areas. Select a ZIP area to see it on the map. Both
           income columns are annual averages per household, in 2022 dollars.
         </p>
         <div class="table-controls">
@@ -474,7 +479,7 @@
           </li>
           <li>
             Nonfilers and income missing from returns are outside the IRS
-            totals. Survey estimates have sampling error, and the two sources
+            totals. Survey estimates have sampling error; the downloads include 90% margins for household counts and aggregate income. Small denominators can make averages unstable. The two sources
             count income differently.
           </li>
           <li>
@@ -502,6 +507,6 @@
       >
     </main>
     <footer class="footer" data-chrome="footer"></footer>
-    <script type="module" src="js/data.js"></script>
+    <script type="module" src="js/data.js?v=20261002"></script>
   </body>
 </html>

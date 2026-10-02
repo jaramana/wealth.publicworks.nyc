@@ -40,7 +40,11 @@ def main():
     parser.add_argument("--stage", type=int, choices=[s[0] for s in STAGES])
     args = parser.parse_args()
 
-    load("00_config")
+    cfg = load("00_config")
+    if cfg.REGION == "nj":
+        load("geography")
+    if args.stage == 4:
+        load("03_check").run()
     for number, name, label in STAGES:
         if args.stage and number != args.stage:
             continue

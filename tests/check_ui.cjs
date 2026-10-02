@@ -3,6 +3,12 @@
 const puppeteer = require(process.env.PUPPETEER_MODULE || "puppeteer-core");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
+const site = JSON.parse(fs.readFileSync(path.join(__dirname, "../docs/js/site-config.js"), "utf8").replace("export const site = ", "").replace(/;\s*$/, ""));
+const nj = site.shortName === "NJ";
+const testZip = nj ? "08401" : "11220";
+const secondZip = nj ? "07078" : "10021";
+const areaCount = JSON.parse(fs.readFileSync(path.join(__dirname, "../docs/data/meta.json"))).region.areas;
 const output = process.env.QA_OUTPUT || "/tmp/wealth-qa";
 const base = process.env.QA_URL || "http://127.0.0.1:8792";
 fs.mkdirSync(output, { recursive: true });
@@ -41,16 +47,16 @@ fs.mkdirSync(output, { recursive: true });
       "Desktop map must fit viewport",
     );
     await page.screenshot({ path: output + "/desktop.png", fullPage: true });
-    await page.type("#search", "11220");
+    await page.type("#search", testZip);
     await page.keyboard.press("Enter");
-    assert.match(await page.$eval("#selection", (e) => e.textContent), /11220/);
+    assert.match(await page.$eval("#selection", (e) => e.textContent), new RegExp(testZip));
     assert.equal(
       await page.$eval("#reading", (e) => getComputedStyle(e).display),
       "none",
     );
     assert.match(
       await page.$eval("#selection", (e) => e.textContent),
-      /Share of NYC investment income/,
+      new RegExp(`Share of ${site.shortName} investment income`),
     );
     assert.equal(
       await page.$$eval(
@@ -165,7 +171,7 @@ fs.mkdirSync(output, { recursive: true });
       "Shared color stops",
     );
     assert.match(JSON.stringify(taxScale.color), /#f0c75e/);
-    assert.match(JSON.stringify(taxScale.color), /11220/);
+    assert.match(JSON.stringify(taxScale.color), new RegExp(testZip));
     assert.equal(
       censusScale.bearing,
       45,
@@ -237,17 +243,17 @@ fs.mkdirSync(output, { recursive: true });
     );
     await page.keyboard.press("Escape");
     await page.goto(base + "/data.html", { waitUntil: "networkidle0" });
-    assert.equal(await page.$$eval("#rows tr", (els) => els.length), 177);
-    await page.type("#filter", "Sunset Park");
-    assert((await page.$$eval("#rows tr", (els) => els.length)) >= 2);
+    assert.equal(await page.$$eval("#rows tr", (els) => els.length), areaCount);
+    await page.type("#filter", nj ? "Atlantic City" : "Sunset Park");
+    assert((await page.$$eval("#rows tr", (els) => els.length)) >= (nj ? 1 : 2));
     await page.select("#sort", "zip");
     await page.screenshot({
       path: output + "/data-desktop.png",
       fullPage: true,
     });
     for (const file of [
-      "wealth-nyc-zip.csv",
-      "wealth-nyc-zip.geojson",
+      `${site.dataStem}.csv`,
+      `${site.dataStem}.geojson`,
       "meta.json",
     ])
       assert.equal(
@@ -306,7 +312,7 @@ fs.mkdirSync(output, { recursive: true });
           await page.$eval("#reading", (e) => getComputedStyle(e).display),
           "none",
         );
-        await page.type("#search", "11220");
+        await page.type("#search", testZip);
         await page.keyboard.press("Enter");
         assert.equal(
           await page.$eval(".reader", (e) => e.getAttribute("aria-modal")),
@@ -379,11 +385,11 @@ fs.mkdirSync(output, { recursive: true });
     await page.emulateMediaFeatures([
       { name: "prefers-reduced-motion", value: "reduce" },
     ]);
-    await page.goto(base + "/#layer=tax&zip=10021", {
+    await page.goto(base + `/#layer=tax&zip=${secondZip}`, {
       waitUntil: "networkidle0",
     });
     await settled();
-    assert.match(await page.$eval("#selection", (e) => e.textContent), /10021/);
+    assert.match(await page.$eval("#selection", (e) => e.textContent), new RegExp(secondZip));
     const fallback = await browser.newPage();
     await fallback.setRequestInterception(true);
     fallback.on("request", (req) =>
@@ -394,11 +400,11 @@ fs.mkdirSync(output, { recursive: true });
       await fallback.$eval("#map-message", (e) => e.textContent),
       /could not load/,
     );
-    await fallback.type("#search", "11220");
+    await fallback.type("#search", testZip);
     await fallback.keyboard.press("Enter");
     assert.match(
       await fallback.$eval("#selection", (e) => e.textContent),
-      /11220/,
+      new RegExp(testZip),
     );
     console.log(
       "PASS: map render; search; single selection; source buttons; stable two-source card; zoom; desktop rotation and north reset; full-screen mobile card and return; fixed heights; shared URL; table; downloads; 320/375/390/768px overflow; reduced motion; no-library fallback; no browser errors.",

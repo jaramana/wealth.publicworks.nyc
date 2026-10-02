@@ -107,7 +107,6 @@ IRS_FIELDS = {
     "N01000": "n_capital_gains",
 }
 IRS_TOP_STUB = 6               # AGI $200,000 or more
-NYC_STATE_FIPS = "36"
 
 
 # ---- Sales rules -----------------------------------------------------------
@@ -128,4 +127,14 @@ EXCLUDE_ZCTAS = {"11001", "11003", "11040"}
 
 # ---- Publication rules -----------------------------------------------------
 
-MIN_RETURNS = 1_000            # smaller ZIPs are mostly offices or single buildings
+MIN_RETURNS = 1_000            # comparison publication threshold; includes small residential areas
+
+# Regional settings keep the calculation and website code in parity with Wealth NJ.
+REGION = "nyc"
+STATE_FIPS = "36"
+CACHE_SUFFIX = "ny"
+GROUP_FIELD = "borough"
+DATA_STEM = "wealth-nyc-zip"
+EXPECTED_AREAS = (170, 185)
+MIN_PUBLISHED = 170
+MIN_POPULATION = 8_000_000

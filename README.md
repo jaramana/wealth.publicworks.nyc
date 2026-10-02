@@ -17,7 +17,7 @@ household for 2018–2022, in 2022 dollars, on one shared dollar scale.
 | [NYC Finance annualized sales](https://data.cityofnewyork.us/d/w2pb-icbu) | Research downloads only | Sales dated 2023–2025 |
 
 Exact sources, dollar definitions and pull dates are in `docs/data/meta.json`.
-Source files were pulled on 28 September 2026.
+Source files were pulled on 28 September 2026; the data were rebuilt on 2 October 2026.
 
 ## Method and limits
 
@@ -37,10 +37,10 @@ Source files were pulled on 28 September 2026.
   includes reported realized gains, not unsold appreciation or net worth.
 - The 177 areas approximate postal ZIPs. Mostly Nassau ZCTAs 11001, 11003 and
   11040 and the catch-all 99999 are excluded. IRS measures are withheld below 1,000
-  latest-year returns.
+  latest-year returns or without all five tax years. This is our publication rule, not an IRS confidentiality threshold.
 - Stack height is linear at a fixed map scale, and both views share color stops at
   $0, $100k, $300k and $1.2m. Original per-return IRS fields and the concentration
-  chart stay in nominal dollars. New real-dollar fields end in `_2022`.
+  chart stay in nominal dollars. New real-dollar fields end in `_2022`. Color saturates above $1.2m; height continues linearly. Missing values have a separate legend key.
 
 The [Data page](https://wealth.publicworks.nyc/data.html) has the calculations,
 limits, a sortable table and the field definitions.
@@ -82,13 +82,13 @@ no account system or analytics. Claude and Codex were used in development.
 
 Run `python3 tests/check_data.py` after the pipeline. It independently reproduces
 the inflation-adjusted IRS values, Census means and household denominators,
-investment shares, legacy nominal figures and download parity.
+investment shares, legacy nominal figures, missing/withheld values, ACS margins and download parity.
 
 For browser checks, serve `docs/` on port 8792. Install `puppeteer-core` in a
 temporary tools folder, set `PUPPETEER_MODULE` to that module path and
 `CHROME_PATH` to a Chrome executable, then run `node tests/check_ui.cjs`.
 Screenshots go to `/tmp/wealth-qa` unless `QA_OUTPUT` is set, and `QA_URL`
-overrides the preview address. The last run used puppeteer-core 23.11.1, pandas
+overrides the preview address. The browser tooling uses puppeteer-core 23.11.1. Python dependencies are pinned to the verified versions: pandas
 3.0.6, requests 2.34.2 and Shapely 2.1.2.
 
 ## License and reuse
@@ -96,3 +96,19 @@ overrides the preview address. The last run used puppeteer-core 23.11.1, pandas
 Code is [BSD 3-Clause licensed](LICENSE). Source data retain their publishers'
 terms. Include the measure, unit, years, geography, publisher and method with
 reused figures. The CSV, GeoJSON and field definitions are on the Data page.
+
+## Regional parity
+
+[Wealth NJ](https://wealthnj.publicworks.nyc/) lives in the sibling
+`wealthnj.publicworks.nyc` repository. Both sites use identical map, table,
+formatting, roof-outline, styling and calculation modules. Regional labels,
+search fields and camera framing live in `docs/js/site-config.js`; source and
+coverage rules live in `pipeline/00_config.py`. NYC retains its MODZCTA geography,
+original field names and research-only property-sales fields. NJ uses Census
+ZCTAs, municipalities and counties, with state shares.
+
+Run `python3 tests/check_parity.py ../wealthnj.publicworks.nyc` to check shared
+files after editing. Carry shared fixes to both repositories. The independent
+source checks require each repository's own raw cache. `run.py --stage 4` checks
+the intermediate table before exporting. See `REVIEW.md` for the October 2026
+content and methodology review.

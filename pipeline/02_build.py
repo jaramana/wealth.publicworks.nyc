@@ -1,8 +1,8 @@
-"""Stage 2: build one table with one row per NYC ZIP area.
+"""Stage 2: build one row per configured ZIP area.
 
-The unit is the city's Modified ZIP Code Tabulation Area (MODZCTA). IRS ZIPs
-and Census ZCTAs roll up into it through the ZIPs the MODZCTA names in its
-`label` and `zcta` fields, less the Nassau ZCTAs in the config.
+NYC uses Health MODZCTAs with their assigned postal ZIPs and Census ZCTAs.
+NJ uses the same-code postal ZIP/ZCTA match from official Census geography.
+Both use the same IRS and ACS calculations and publication thresholds.
 """
 
 import json
@@ -17,6 +17,8 @@ cfg = sys.modules["00_config"]
 # ---- Crosswalk -------------------------------------------------------------
 
 def load_areas():
+    if cfg.REGION == "nj":
+        return sys.modules["geography"].load_areas()
     features = json.loads((cfg.RAW / "modzcta.geojson").read_text())["features"]
     areas, crosswalk = [], {}
     for f in features:
@@ -36,6 +38,8 @@ def load_areas():
 def name_areas(areas):
     """Name each area after the residential NTA that covers most of it.
     Names can repeat. The ZIP is the identifier."""
+    if cfg.REGION == "nj":
+        return sys.modules["geography"].name_areas(areas)
     ntas = [
         (shape(f["geometry"]), f["properties"])
         for f in json.loads((cfg.RAW / "nta.geojson").read_text())["features"]
@@ -54,7 +58,7 @@ def build_irs(crosswalk):
     frames = []
     for year in cfg.IRS_YEARS:
         keep = {"ZIPCODE", "AGI_STUB", *cfg.IRS_FIELDS}
-        d = pd.read_csv(cfg.RAW / f"irs_{year}_ny.csv", dtype={"zipcode": str},
+        d = pd.read_csv(cfg.RAW / f"irs_{year}_{cfg.CACHE_SUFFIX}.csv", dtype={"zipcode": str},
                         usecols=lambda c: c.upper() in keep)
         d.columns = [c.upper() for c in d.columns]
         d["zip"] = d["ZIPCODE"].str.zfill(5).map(crosswalk)
@@ -63,7 +67,7 @@ def build_irs(crosswalk):
         d["year"] = year
         frames.append(d)
     irs = pd.concat(frames)
-    irs["capital_income"] = irs[["interest", "dividends", "capital_gains"]].sum(axis=1)
+    irs["capital_income"] = irs[["interest", "dividends", "capital_gains"]].sum(axis=1, min_count=3)
 
     money = ["agi", "wages", "interest", "dividends", "capital_gains", "capital_income",
              "partnership", "property_tax"]
@@ -85,6 +89,7 @@ def build_irs(crosswalk):
 
     out = pd.DataFrame(index=total.index)
     out["irs_returns"] = latest
+    out["irs_years_available"] = irs.groupby("zip").year.nunique()
     out["irs_agi_per_return"] = total.agi / total.returns
     out["irs_wages_per_return"] = total.wages / total.returns
     out["irs_capital_income_per_return"] = total.capital_income / total.returns
@@ -106,7 +111,7 @@ def build_irs(crosswalk):
 
 def read_acs(table):
     """Negative values are Census codes for a missing estimate."""
-    d = pd.read_csv(cfg.RAW / f"acs_{cfg.ACS_YEAR}_{table}_ny.dat", sep="|", dtype={"GEO_ID": str})
+    d = pd.read_csv(cfg.RAW / f"acs_{cfg.ACS_YEAR}_{table}_{cfg.CACHE_SUFFIX}.dat", sep="|", dtype={"GEO_ID": str})
     d = d.set_index(d.GEO_ID.str[-5:]).drop(columns="GEO_ID")
     d = d.apply(pd.to_numeric, errors="coerce")
     return d.where(d >= 0)
@@ -128,12 +133,19 @@ def build_acs(crosswalk):
     z["aggregate_income"] = t["b19025"][col("b19025", 1)]
     z["housing_units"] = t["b25002"][col("b25002", 1)]
     z["seasonal_units"] = t["b25004"][col("b25004", 6)]
-    z["k12_private"] = t["b14002"][[col("b14002", n) for n in k12]].sum(axis=1)
-    z["k12_total"] = z.k12_private + t["b14002"][[col("b14002", n) for n in k12_public]].sum(axis=1)
+    z["k12_private"] = t["b14002"][[col("b14002", n) for n in k12]].sum(axis=1, min_count=len(k12))
+    z["k12_total"] = z.k12_private + t["b14002"][[col("b14002", n) for n in k12_public]].sum(axis=1, min_count=len(k12))
     z["occupied"] = t["b25003"][col("b25003", 1)]
     z["renters"] = t["b25003"][col("b25003", 3)]
+    # A zero-household ZCTA contributes no household income. Missing income
+    # with positive/unknown households must stay missing, never become zero.
+    z.loc[z.households.eq(0) & z.aggregate_income.isna(), "aggregate_income"] = 0
     z["zip"] = z.index.map(crosswalk)
-    s = z.dropna(subset=["zip"]).groupby("zip").sum()
+    assigned = z.dropna(subset=["zip"])
+    s = assigned.groupby("zip").sum(min_count=1)
+    for field in ["households", "aggregate_income"]:
+        incomplete = assigned.groupby("zip")[field].apply(lambda values: values.isna().any())
+        s.loc[incomplete, field] = float("nan")
 
     # A median cannot be summed. Extra ZCTAs in an area are office buildings
     # with few or no households, so the area's own ZCTA supplies the median.
@@ -144,6 +156,11 @@ def build_acs(crosswalk):
     out = pd.DataFrame(index=s.index)
     out["acs_population"] = s.population
     out["acs_households"] = s.households
+    for table, field in [("b19001", "acs_households_moe"), ("b19025", "acs_aggregate_income_moe")]:
+        m = t[table][table.upper() + "_M001"].to_frame("moe")
+        m["zip"] = m.index.map(crosswalk)
+        out[field] = m.dropna(subset=["zip"]).groupby("zip").moe.apply(
+            lambda values: (values.pow(2).sum() ** 0.5) if values.notna().all() else float("nan"))
     out["acs_median_household_income"] = median.reindex(s.index)
     out["acs_median_household_income_moe"] = t["b19013"]["B19013_M001"].reindex(s.index)
     out["acs_mean_household_income"] = s.aggregate_income / s.households
@@ -190,20 +207,26 @@ def run():
     table = pd.DataFrame(index=[a["zip"] for a in areas])
     table.index.name = "zip"
     table["name"] = [names[a["zip"]]["name"] for a in areas]
-    table["borough"] = [names[a["zip"]]["borough"] for a in areas]
+    table[cfg.GROUP_FIELD] = [names[a["zip"]][cfg.GROUP_FIELD] for a in areas]
+    if cfg.REGION == "nj":
+        for field in ["counties", "municipalities", "nj_land_share"]:
+            table[field] = [names[a["zip"]][field] for a in areas]
     table["zips_included"] = [a["zips"] for a in areas]
-    table = table.join(build_irs(crosswalk)).join(build_acs(crosswalk)).join(build_sales(crosswalk))
+    table = table.join(build_irs(crosswalk)).join(build_acs(crosswalk))
+    if "sales" in cfg.SOURCES:
+        table = table.join(build_sales(crosswalk))
     households = table.acs_households.where(table.acs_households > 0)
     table["irs_income_per_household_2022"] = table.irs_agi_annual_2022 / households
     table["irs_investment_share_2022"] = table.irs_investment_annual_2022 / table.irs_agi_annual_2022.where(table.irs_agi_annual_2022 > 0)
-    table["sales_count"] = table.sales_count.fillna(0).astype(int)
-    table["sales_over_5m"] = table.sales_over_5m.fillna(0).astype(int)
+    if "sales" in cfg.SOURCES:
+        table["sales_count"] = table.sales_count.fillna(0).astype(int)
+        table["sales_over_5m"] = table.sales_over_5m.fillna(0).astype(int)
 
-    # Areas with few returns are mostly offices and single buildings.
+    # Keep low-return areas on the map while withholding their IRS figures.
     # They stay on the map without IRS figures.
 
-    irs_cols = [c for c in table.columns if c.startswith("irs_") and c != "irs_returns"]
-    table["irs_published"] = table.irs_returns.fillna(0) >= cfg.MIN_RETURNS
+    irs_cols = [c for c in table.columns if c.startswith("irs_") and c not in {"irs_returns", "irs_years_available"}]
+    table["irs_published"] = (table.irs_returns.fillna(0) >= cfg.MIN_RETURNS) & table.irs_years_available.eq(len(cfg.IRS_YEARS))
     table.loc[~table.irs_published, irs_cols] = None
 
     # City shares pool the same five years on both sides of the comparison.

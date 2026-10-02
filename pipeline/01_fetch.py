@@ -1,6 +1,6 @@
 """Stage 1: download the sources into data-raw/.
 
-The IRS and Census files are national. They are streamed and cut to New York
+National files are streamed and filtered to the configured state or ZIP prefix
 on the way in, so the cache holds megabytes instead of gigabytes.
 """
 
@@ -50,7 +50,7 @@ def stream_lines(url):
 
 def fetch_irs(force):
     for year, url in cfg.SOURCES["irs"]["urls"].items():
-        out = cfg.RAW / f"irs_{year}_ny.csv"
+        out = cfg.RAW / f"irs_{year}_{cfg.CACHE_SUFFIX}.csv"
         if out.exists() and not force:
             continue
         lines = stream_lines(url)
@@ -60,7 +60,7 @@ def fetch_irs(force):
         with temp.open("w") as f:
             f.write(header + "\n")
             for line in lines:
-                if line.split(",", state_col + 1)[state_col].zfill(2) == cfg.NYC_STATE_FIPS:
+                if line.split(",", state_col + 1)[state_col].zfill(2) == cfg.STATE_FIPS:
                     f.write(line + "\n")
         temp.replace(out)
         record_pull("irs", out.name)
@@ -69,10 +69,10 @@ def fetch_irs(force):
 
 def fetch_acs(force):
 
-    # ZCTA rows carry a GEO_ID like 860Z200US10021. New York ZIPs start with 1.
+    # ZCTA rows carry a GEO_ID like 860Z200US10021. NY starts with 1, NJ with 0.
 
     for table in cfg.SOURCES["acs"]["tables"]:
-        out = cfg.RAW / f"acs_{cfg.ACS_YEAR}_{table}_ny.dat"
+        out = cfg.RAW / f"acs_{cfg.ACS_YEAR}_{table}_{cfg.CACHE_SUFFIX}.dat"
         if out.exists() and not force:
             continue
         url = f"{cfg.ACS_SF}/acsdt5y{cfg.ACS_YEAR}-{table}.dat"
@@ -81,7 +81,7 @@ def fetch_acs(force):
         with temp.open("w") as f:
             f.write(next(lines) + "\n")
             for line in lines:
-                if line.startswith("860Z200US1"):
+                if line.startswith("860Z200US" + ("0" if cfg.REGION == "nj" else "1")):
                     f.write(line + "\n")
         temp.replace(out)
         record_pull("acs", out.name)
@@ -120,7 +120,10 @@ def run(force=False):
     seed_file_dates()
     fetch_irs(force)
     fetch_acs(force)
-    fetch_sales(force)
-    fetch_socrata("modzcta", "modzcta.geojson", {"$limit": 1000}, force)
-    fetch_socrata("nta", "nta.geojson", {"$limit": 1000}, force)
+    if cfg.REGION == "nj":
+        sys.modules["geography"].fetch(force, record_pull)
+    else:
+        fetch_sales(force)
+        fetch_socrata("modzcta", "modzcta.geojson", {"$limit": 1000}, force)
+        fetch_socrata("nta", "nta.geojson", {"$limit": 1000}, force)
 
