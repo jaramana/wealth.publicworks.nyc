@@ -61,6 +61,8 @@ check the available years, edit `pipeline/00_config.py` and run
 `.venv/bin/python run.py --force-fetch`. Then check the years and methods in the
 pages. Large national files stream in and only New York rows are kept. Checks run
 before export. Never change a pull date because output files were rebuilt.
+Export also writes `wealth-nyc-zip-map.geojson`, the same shapes with only the
+fields the map reads, so the map loads sooner. The full GeoJSON is the download.
 
 To preview the site, which is all of `docs/` with no build step:
 
