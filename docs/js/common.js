@@ -68,10 +68,40 @@ export function period(meta, source = "irs") {
 }
 const notice =
   `This is not an official product. It is an independent initiative, not affiliated with, endorsed by, or produced by the IRS, the U.S. Census Bureau, or the ${site.government}. Please refer to them for authoritative information.`;
+// On a phone the nav folds behind a menu button. Escape, a tap outside the
+// masthead, a tap on a link, or a window wide enough to show the nav folds it
+// again. Open, the page underneath stops scrolling.
+function menu(head) {
+  const button = head.querySelector(".nav-toggle");
+  const nav = head.querySelector(".nav");
+  const wide = window.matchMedia("(min-width: 40.01rem)");
+  const set = (open) => {
+    if (open) nav.style.setProperty("--sheet-top", `${head.getBoundingClientRect().bottom}px`);
+    button.setAttribute("aria-expanded", String(open));
+    head.classList.toggle("menu-open", open);
+    document.documentElement.classList.toggle("menu-locked", open);
+  };
+  button.addEventListener("click", () => set(button.getAttribute("aria-expanded") !== "true"));
+  head.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && head.classList.contains("menu-open")) {
+      set(false);
+      button.focus();
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (head.classList.contains("menu-open") && !head.contains(e.target)) set(false);
+  });
+  nav.addEventListener("click", (e) => {
+    if (e.target.closest("a")) set(false);
+  });
+  wide.addEventListener("change", () => {
+    if (wide.matches) set(false);
+  });
+}
 export function chrome() {
   const page = location.pathname.split("/").pop() || "index.html";
   document.querySelector('[data-chrome="masthead"]').innerHTML =
-    `<div class="wrap masthead-inner"><a class="wordmark" href="index.html">Wealth <span>${site.shortName}</span></a><nav class="nav" aria-label="Sections">${[
+    `<div class="wrap masthead-inner"><a class="wordmark" href="index.html">Wealth <span>${site.shortName}</span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">Menu</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="bar-top" d="M4 7h16"/><path class="bar-mid" d="M4 12h16"/><path class="bar-bottom" d="M4 17h16"/></svg></button><nav class="nav" id="site-nav" aria-label="Sections">${[
       ["index.html", "Map"],
       ["data.html", "Data"],
       ["about.html", "About"],
@@ -81,6 +111,7 @@ export function chrome() {
           `<a href="${url}" ${page === url ? 'aria-current="page"' : ""}>${label}</a>`,
       )
       .join("")}</nav></div>`;
+  menu(document.querySelector('[data-chrome="masthead"]'));
   const footer = document.querySelector('[data-chrome="footer"]');
   if (footer) {
     const links = (items) =>
