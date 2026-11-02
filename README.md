@@ -11,10 +11,10 @@ household for 2018–2022, in 2022 dollars, on one shared dollar scale.
 | --- | --- | --- |
 | [IRS Statistics of Income, ZIP Code Data](https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi) | Adjusted gross income and investment income by ZIP | Tax years 2018–2022 |
 | [Census Bureau American Community Survey](https://www.census.gov/programs-surveys/acs/data/summary-file.html) | Aggregate household income and household counts | 2018–2022 five-year estimates |
-| BLS all-items CPI-U, `CUUR0000SA0` | Inflation adjustment to 2022 dollars | Annual averages, 2018–2022 |
-| [NYC Health MODZCTA boundaries](https://data.cityofnewyork.us/d/pri4-ifjk) | The 177 map areas | Boundaries |
-| [NYC Planning 2020 Neighborhood Tabulation Areas](https://data.cityofnewyork.us/d/9nt8-h7nd) | Neighborhood names | Boundaries |
-| [NYC Finance annualized sales](https://data.cityofnewyork.us/d/w2pb-icbu) | Research downloads only | Sales dated 2023–2025 |
+| [BLS all-items CPI-U](https://www.bls.gov/cpi/), `CUUR0000SA0` | Inflation adjustment to 2022 dollars | Annual averages, 2018–2022 |
+| [NYC Health MODZCTA boundaries](https://data.cityofnewyork.us/d/pri4-ifjk), `pri4-ifjk` | The 177 map areas | Boundaries |
+| [NYC Planning 2020 Neighborhood Tabulation Areas](https://data.cityofnewyork.us/d/9nt8-h7nd), `9nt8-h7nd` | Neighborhood names | Boundaries |
+| [NYC Finance annualized sales](https://data.cityofnewyork.us/d/w2pb-icbu), `w2pb-icbu` | Research downloads only | Sales dated 2023–2025 |
 
 Exact sources, dollar definitions and pull dates are in `docs/data/meta.json`.
 Source files were pulled on 28 September 2026; the data were rebuilt on 2 October 2026.
@@ -93,12 +93,6 @@ Screenshots go to `/tmp/wealth-qa` unless `QA_OUTPUT` is set, and `QA_URL`
 overrides the preview address. The browser tooling uses puppeteer-core 23.11.1. Python dependencies are pinned to the verified versions: pandas
 3.0.6, requests 2.34.2 and Shapely 2.1.2.
 
-## License and reuse
-
-Code is [BSD 3-Clause licensed](LICENSE). Source data retain their publishers'
-terms. Include the measure, unit, years, geography, publisher and method with
-reused figures. The CSV, GeoJSON and field definitions are on the Data page.
-
 ## Regional parity
 
 [Wealth NJ](https://wealthnj.publicworks.nyc/) lives in the sibling
@@ -114,3 +108,10 @@ files after editing. Carry shared fixes to both repositories. The independent
 source checks require each repository's own raw cache. `run.py --stage 4` checks
 the intermediate table before exporting. See `REVIEW.md` for the October 2026
 content and methodology review.
+
+## License and reuse
+
+Code is [BSD 3-Clause licensed](LICENSE). Compiled data can be reused with
+attribution; the source data retain their publishers' terms. Carry the measure,
+unit, years, geography, publisher and method when republishing a figure. The CSV,
+GeoJSON and field definitions are on the Data page.

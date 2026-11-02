@@ -2640,6 +2640,22 @@ select {
   margin-top: 12px;
 }
 
+/* On a phone the reader panel is hidden, so the legend carries the period,
+   the dollar year and a link to what the figures measure. */
+.legend-basis {
+  display: none;
+}
+@media (max-width: 720px) {
+  .map-page .legend-basis {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.65rem;
+  }
+  .legend-basis a {
+    color: inherit;
+  }
+}
+
 /* Missing values remain distinct from the income scale in both views. */
 .legend-unavailable {
   display: flex;

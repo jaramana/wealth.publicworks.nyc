@@ -14,7 +14,7 @@
       name="description"
       content="Why Wealth NYC compares IRS and Census Bureau income."
     />
-    <link rel="stylesheet" href="css/site.css?v=20261009b" />
+    <link rel="stylesheet" href="css/site.css?v=20261101" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -30,7 +30,7 @@
         <p>
           New York’s income peaks look more extreme through tax records. Switch
           between the IRS and Census Bureau to see the difference, with the same
-          household counts, years, and dollar scale. Tax records include
+          household counts, years and dollar scale. Tax records include
           reported capital gains, one part of income that the Census Bureau’s
           household survey excludes.
         </p>
@@ -43,12 +43,12 @@
           households. It does not estimate net worth or identify individual
           owners. The
           <a href="data.html">Data page</a> provides the calculations, source
-          dates, limits, and downloads.
+          dates, limits and downloads.
           <a href="https://wealthnj.publicworks.nyc/">Wealth NJ</a> applies the same comparison to New Jersey.
         </p>
       </section>
       <section>
-        <h2>Read the map</h2>
+        <h2 id="read-the-map">Read the map</h2>
         <p>
           Taller stacks mean higher annual income per household. Colors brighten up to $1.2 million, then stay at the brightest shade.
           Select a ZIP area to see both estimates and the role of investment
@@ -58,10 +58,11 @@
       <section>
         <h2>Built</h2>
         <p>
-          A static website using MapLibre GL JS, with a Python data pipeline
-          using pandas, requests, and Shapely. The pipeline joins ZIP-area
-          sources, adjusts IRS income for inflation, and exports the map and
-          downloads. The site uses no account system or analytics.
+          Python, pandas, requests and Shapely join the ZIP-area sources,
+          adjust IRS income for inflation and export the map and downloads.
+          The website uses static HTML, CSS and JavaScript, served from GitHub
+          Pages, with MapLibre GL JS. The site uses no account system or
+          analytics.
         </p>
       </section>
       <section>
@@ -87,11 +88,10 @@
       <section>
         <h2>Contact</h2>
         <p>
+          If you find an error,
           <a href="https://github.com/jaramana/wealth.publicworks.nyc/issues"
-            >Report an issue</a
-          >
-          on GitHub. For a data issue, include the ZIP area, measure, and year
-          range.
+            >open an issue</a
+          >. For a data issue, include the ZIP area, measure and year range.
         </p>
       </section>
     </main>

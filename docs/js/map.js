@@ -123,7 +123,7 @@ function render() {
   $("map-period").textContent =
     `${layer.source} · ${period(meta, layer.source === "Census Bureau" ? "acs" : "irs")}`;
   $("legend").innerHTML =
-    `<strong class="legend-title">Annual income per household</strong><div class="legend-ramp"></div><div class="legend-labels"><span>$0</span><span>$100k</span><span>$300k</span><span>$1.2m+</span></div><span class="legend-unavailable"><i aria-hidden="true"></i> Not available</span><p>2022 dollars · Same scale in both views.${state.flat ? "" : " Height is proportional to income."}</p>`;
+    `<strong class="legend-title">Annual income per household</strong><div class="legend-ramp"></div><div class="legend-labels"><span>$0</span><span>$100k</span><span>$300k</span><span>$1.2m+</span></div><span class="legend-unavailable"><i aria-hidden="true"></i> Not available</span><span class="legend-basis">2018–2022 · 2022 dollars · <a href="about.html#read-the-map">Area averages, not net worth</a></span><p>2022 dollars · Same scale in both views.${state.flat ? "" : " Height is proportional to income."}</p>`;
   renderSelection();
   updateURL();
 }
